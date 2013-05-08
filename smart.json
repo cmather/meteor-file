@@ -1,0 +1,9 @@
+{
+  "name": "meteor-file",
+  "description": "<beta> Adds MeteorFile for file management in Meteor",
+  "homepage": "https://github.com/eventedmind/meteor-file",
+  "author": "Chris Mather <mather@eventedmind.com>",
+  "version": "0.0.2",
+  "git": "https://github.com/eventedmind/meteor-file.git",
+  "packages": {}
+}

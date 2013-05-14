@@ -1,10 +1,22 @@
 /************************ Client and Server **********************************/
+
+function defaultZero (value) {
+  return _.isUndefined(value) ? 0 : value;
+}
+
 MeteorFile = function (options) {
   options = options || {};
   this.name = options.name;
   this.type = options.type;
   this.size = options.size;
   this.data = options.data;
+
+  this.start = defaultZero(options.start);
+  this.end = defaultZero(options.end);
+  this.bytesRead = defaultZero(options.bytesRead);
+  this.bytesUploaded = defaultZero(options.bytesUploaded);
+
+  this._id = options._id || Meteor.uuid();
 };
 
 MeteorFile.fromJSONValue = function (value) {
@@ -12,7 +24,12 @@ MeteorFile.fromJSONValue = function (value) {
     name: value.name,
     type: value.type,
     size: value.size,
-    data: EJSON.fromJSONValue(value.data)
+    data: EJSON.fromJSONValue(value.data),
+    start: value.start,
+    end: value.end,
+    bytesRead: value.bytesRead,
+    bytesUploaded: value.bytesUploaded,
+    _id: value._id
   });
 };
 
@@ -24,10 +41,7 @@ MeteorFile.prototype = {
   },
 
   equals: function (other) {
-    return
-      this.name == other.name &&
-      this.type == other.type &&
-      this.size == other.size;
+    return other._id == this._id;
   },
 
   clone: function () {
@@ -35,7 +49,12 @@ MeteorFile.prototype = {
       name: this.name,
       type: this.type,
       size: this.size,
-      data: this.data
+      data: this.data,
+      start: value.start,
+      end: value.end,
+      bytesRead: value.bytesRead,
+      bytesUploaded: value.bytesUploaded,
+      _id: value._id
     });
   },
 
@@ -44,7 +63,12 @@ MeteorFile.prototype = {
       name: this.name,
       type: this.type,
       size: this.size,
-      data: EJSON.toJSONValue(this.data)
+      data: EJSON.toJSONValue(this.data),
+      start: value.start,
+      end: value.end,
+      bytesRead: value.bytesRead,
+      bytesUploaded: value.bytesUploaded,
+      _id: value._id
     };
   }
 };
@@ -55,30 +79,48 @@ EJSON.addType("MeteorFile", MeteorFile.fromJSONValue);
 /************************ Client *********************************************/
 if (Meteor.isClient) {
   _.extend(MeteorFile.prototype, {
-    read: function (file, callback) {
+    read: function (file, options, callback) {
+
+      if (arguments.length == 2)
+        callback = options;
+
+      options = options || {};
+
       var reader = new FileReader;
       var self = this;
+      var chunkSize = options.size || 1024 * 1024 * 2; /* 2MB */
 
       callback = callback || function () {};
 
       self.size = file.size;
+      self.start = self.end;
+      self.end += chunkSize;
+
+      if (self.end > self.size)
+        self.end = self.size;
 
       reader.onload = function () {
+        self.bytesRead += self.end - self.start;
         self.data = new Uint8Array(reader.result);
-        callback(null, self);
+        callback && callback(null, self);
       };
 
       reader.onerror = function () {
-        callback(reader.error);
+        callback && callback(reader.error);
       };
 
-      reader.readAsArrayBuffer(file);
+      if ((this.end - this.start) > 0) {
+        var blob = file.slice(self.start, self.end);
+        reader.readAsArrayBuffer(blob);
+      }
+
+      return this;
     }
   });
 
   _.extend(MeteorFile, {
-    read: function (file, callback) {
-      return new MeteorFile(file).read(file, callback);
+    read: function (file, options, callback) {
+      return new MeteorFile(file).read(file, options, callback);
     }
   });
 }
@@ -96,5 +138,4 @@ if (Meteor.isServer) {
       fs.writeFileSync(filepath, buffer, options);
     }
   });
-}
 /*****************************************************************************/

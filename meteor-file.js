@@ -191,11 +191,20 @@ if (Meteor.isServer) {
   var fs = Npm.require('fs');
   var path = Npm.require('path');
 
+  function sanitize (fileName) {
+    return fileName
+      .replace(/\//g, '')
+      .replace(/\.\.+/g, '.')
+  }
+
   _.extend(MeteorFile.prototype, {
     save: function (dirPath, options) {
-      var filepath = path.join(dirPath, this.name);
+      var filepath = path.join(dirPath, sanitize(this.name));
       var buffer = new Buffer(this.data);
-      fs.writeFileSync(filepath, buffer, options);
+      var mode = this.start == 0 ? 'w' : 'a';
+      var fd = fs.openSync(filepath, mode);
+      fs.writeSync(fd, buffer, 0, buffer.length, this.start);
+      fs.closeSync(fd);
     }
   });
 }

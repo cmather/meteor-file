@@ -3,7 +3,7 @@
   "description": "<beta> Adds MeteorFile for file management in Meteor",
   "homepage": "https://github.com/EventedMind/meteor-file",
   "author": "Chris Mather <mather@eventedmind.com>",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "git": "https://github.com/EventedMind/meteor-file.git",
   "packages": {}
 }

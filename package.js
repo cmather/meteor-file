@@ -3,6 +3,6 @@ Package.describe({
 });
 
 Package.on_use(function (api) {
-  api.use(["ejson"], ["client", "server"]);
+  api.use(["underscore", "ejson"], ["client", "server"]);
   api.add_files(["meteor-file.js"], ["client", "server"]);
 });

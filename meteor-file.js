@@ -47,25 +47,25 @@ MeteorFile.prototype = {
       type: this.type,
       size: this.size,
       data: this.data,
-      start: value.start,
-      end: value.end,
-      bytesRead: value.bytesRead,
-      bytesUploaded: value.bytesUploaded,
-      _id: value._id
+      start: this.start,
+      end: this.end,
+      bytesRead: this.bytesRead,
+      bytesUploaded: this.bytesUploaded,
+      _id: this._id
     });
   },
 
   toJSONValue: function () {
     return {
-      _id: value._id,
+      _id: this._id,
       name: this.name,
       type: this.type,
       size: this.size,
       data: EJSON.toJSONValue(this.data),
-      start: value.start,
-      end: value.end,
-      bytesRead: value.bytesRead,
-      bytesUploaded: value.bytesUploaded
+      start: this.start,
+      end: this.end,
+      bytesRead: this.bytesRead,
+      bytesUploaded: this.bytesUploaded
     };
   }
 };

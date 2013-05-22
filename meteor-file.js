@@ -3,17 +3,22 @@ function defaultZero (value) {
   return _.isUndefined(value) ? 0 : value;
 }
 
-MeteorFile = function (options) {
+MeteorFile = function (doc, options) {
   options = options || {};
-  this.name = options.name;
-  this.type = options.type;
-  this.size = options.size;
-  this.data = options.data;
-  this.start = defaultZero(options.start);
-  this.end = defaultZero(options.end);
-  this.bytesRead = defaultZero(options.bytesRead);
-  this.bytesUploaded = defaultZero(options.bytesUploaded);
-  this._id = options._id || Meteor.uuid();
+  doc = doc || {};
+  this._id = doc._id || Meteor.uuid();
+  this.name = doc.name;
+  this.type = doc.type;
+  this.size = doc.size;
+  this.data = doc.data;
+  this.start = defaultZero(doc.start);
+  this.end = defaultZero(doc.end);
+  this.bytesRead = defaultZero(doc.bytesRead);
+  this.bytesUploaded = defaultZero(doc.bytesUploaded);
+
+  this.collection = options.collection;
+  this.readProgress = defaultZero(doc.readProgress);
+  this.uploadProgress = defaultZero(doc.uploadProgress);
 };
 
 MeteorFile.fromJSONValue = function (value) {
@@ -26,7 +31,9 @@ MeteorFile.fromJSONValue = function (value) {
     start: value.start,
     end: value.end,
     bytesRead: value.bytesRead,
-    bytesUploaded: value.bytesUploaded
+    bytesUploaded: value.bytesUploaded,
+    readProgress: value.readProgress,
+    uploadProgress: value.uploadProgress
   });
 };
 
@@ -51,7 +58,9 @@ MeteorFile.prototype = {
       end: this.end,
       bytesRead: this.bytesRead,
       bytesUploaded: this.bytesUploaded,
-      _id: this._id
+      _id: this._id,
+      readProgress: this.readProgress,
+      uploadProgress: this.uploadProgress
     });
   },
 
@@ -65,7 +74,9 @@ MeteorFile.prototype = {
       start: this.start,
       end: this.end,
       bytesRead: this.bytesRead,
-      bytesUploaded: this.bytesUploaded
+      bytesUploaded: this.bytesUploaded,
+      readProgress: this.readProgress,
+      uploadProgress: this.uploadProgress
     };
   }
 };
@@ -96,10 +107,12 @@ if (Meteor.isClient) {
       reader.onload = function () {
         self.bytesRead += self.end - self.start;
         self.data = new Uint8Array(reader.result);
+        self._setStatus();
         callback && callback(null, self);
       };
 
       reader.onerror = function () {
+        self._setStatus(reader.error);
         callback && callback(reader.error);
       };
 
@@ -117,6 +130,8 @@ if (Meteor.isClient) {
       this.end = 0;
       this.bytesRead = 0;
       this.bytesUploaded = 0;
+      this.readProgress = 0;
+      this.uploadProgress = 0;
     },
 
     upload: function (file, method, options, callback) {
@@ -140,10 +155,9 @@ if (Meteor.isClient) {
       var readNext = function () {
         if (self.bytesUploaded < self.size) {
           self.read(file, options, function (err, res) {
-            if (err && callback)
-              callback(err);
-            else if (err)
-              throw err;
+            if (err) {
+              callback && callback(err);
+            }
             else {
               Meteor.apply(
                 method,
@@ -152,12 +166,13 @@ if (Meteor.isClient) {
                   wait: true
                 },
                 function (err) {
-                  if (err && callback)
-                    callback(err);
-                  else if (err)
-                    throw err;
+                  if (err) {
+                    self._setStatus(err);
+                    callback && callback(err);
+                  }
                   else {
                     self.bytesUploaded += self.data.length;
+                    self._setStatus();
                     readNext();
                   }
                 }
@@ -165,12 +180,37 @@ if (Meteor.isClient) {
             }
           });
         } else {
+          self._setStatus();
           callback && callback(null, self);
         }
       };
 
       readNext();
       return this;
+    },
+
+    _setStatus: function (err) {
+      this.readProgress = Math.round(this.bytesRead/this.size * 100);
+      this.uploadProgress = Math.round(this.bytesUploaded/this.size * 100);
+
+      if (err)
+        this.status = err.toString();
+      else if (this.uploadProgress == 100)
+        this.status = "Upload complete";
+      else if (this.uploadProgress > 0)
+        this.status = "File uploading";
+      else if (this.readProgress > 0)
+        this.status = "File loading";
+
+      if (this.collection) {
+        this.collection.update(this._id, {
+          $set: {
+            status: this.status,
+            readProgress: this.readProgress,
+            uploadProgress: this.uploadProgress
+          }
+        });
+      }
     }
   });
 

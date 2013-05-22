@@ -37,6 +37,21 @@ MeteorFile.fromJSONValue = function (value) {
   });
 };
 
+MeteorFile.humanize = function (size) {
+  var gb = Math.pow(1024, 3);
+  var mb = Math.pow(1024, 2);
+  var kb = 1024;
+
+  if (size >= gb)
+    return Math.floor(size / gb) + ' GB';
+  else if (size >= 1024^2)
+    return Math.floor(size / mb) + ' MB';
+  else if (size >= 1024)
+    return Math.floor(size / kb) + ' KB';
+  else
+    return size + ' Bytes';
+};
+
 MeteorFile.prototype = {
   constructor: MeteorFile,
 
@@ -156,6 +171,7 @@ if (Meteor.isClient) {
         if (self.bytesUploaded < self.size) {
           self.read(file, options, function (err, res) {
             if (err) {
+              self.rewind();
               callback && callback(err);
             }
             else {
@@ -167,6 +183,7 @@ if (Meteor.isClient) {
                 },
                 function (err) {
                   if (err) {
+                    self.rewind();
                     self._setStatus(err);
                     callback && callback(err);
                   }

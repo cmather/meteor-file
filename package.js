@@ -5,6 +5,7 @@ Package.describe({
 Package.on_use(function (api) {
   api.use(["underscore", "ejson"], ["client", "server"]);
   api.add_files(["meteor-file.js"], ["client", "server"]);
+  api.add_files("meteor-file-uploader.js", "client");
 });
 
 Package.on_test(function (api) {

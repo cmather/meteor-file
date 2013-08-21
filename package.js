@@ -7,7 +7,10 @@ Package.on_use(function (api) {
   api.use(["handlebars", "spark"], "client");
   api.add_files(["meteor-file.js"], ["client", "server"]);
   api.add_files("meteor-file-uploader.js", "client");
-  api.export("MeteorFile", ["client", "server"]);
+
+  if (typeof api.export !== 'undefined') {
+    api.export("MeteorFile", ["client", "server"]);
+  }
 });
 
 Package.on_test(function (api) {

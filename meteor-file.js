@@ -177,7 +177,7 @@ if (Meteor.isClient) {
             else {
               Meteor.apply(
                 method,
-                [self].concat(options.params || []),
+                [self].concat([_.omit(options, 'size', 'method')]),
                 {
                   wait: true
                 },
@@ -186,6 +186,7 @@ if (Meteor.isClient) {
                     self.rewind();
                     self._setStatus(err);
                     callback && callback(err);
+                    throw err;
                   }
                   else {
                     self.bytesUploaded += self.data.length;

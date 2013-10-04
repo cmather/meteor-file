@@ -36,13 +36,14 @@ FileUploader.prototype = {
             collection: self.files
           });
 
-          self.files.insert(mFile);
+          self.files.insert(mFile.toJSONValue());
 
           mFile.upload(
             file,
             self.method,
             self.options,
             function (err) {
+              if (err) throw err;
             }
           );
         }

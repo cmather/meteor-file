@@ -44,9 +44,9 @@ MeteorFile.humanize = function (size) {
 
   if (size >= gb)
     return Math.floor(size / gb) + ' GB';
-  else if (size >= 1024^2)
+  else if (size >= mb)
     return Math.floor(size / mb) + ' MB';
-  else if (size >= 1024)
+  else if (size >= kb)
     return Math.floor(size / kb) + ' KB';
   else
     return size + ' Bytes';

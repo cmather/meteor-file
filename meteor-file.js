@@ -178,9 +178,6 @@ if (Meteor.isClient) {
               Meteor.apply(
                 method,
                 [self].concat([_.omit(options, 'size', 'method')]),
-                {
-                  wait: true
-                },
                 function (err) {
                   if (err) {
                     self.rewind();

@@ -101,7 +101,35 @@ EJSON.addType("MeteorFile", MeteorFile.fromJSONValue);
 
 /************************ Client *********************************************/
 if (Meteor.isClient) {
+
+  /**
+   * Create a binary string out of an array of numbers (bytes), each varying
+   * from 0-255.
+   *
+   * @param {Array} bytes The array of numbers to transform into a binary str.
+   * @return {string} The byte array as a string.
+   */
+  function arrayToBinaryString(bytes) {
+    if (typeof bytes != typeof []) {
+      return null;
+    }
+    var i = bytes.length;
+    var bstr = new Array(i);
+    while (i--) {
+      bstr[i] = String.fromCharCode(bytes[i]);
+    }
+    return bstr.join('');
+  }
+
+  function toDataURL(contentType, uint8Array) {
+    return 'data:' + contentType + ';base64,' +
+        self.btoa(arrayToBinaryString(uint8Array));
+  }
+
   _.extend(MeteorFile.prototype, {
+    getDataUrl: function() {
+        return toDataURL(this.type, this.data);
+    },
     read: function (file, options, callback) {
       if (arguments.length == 2)
         callback = options;

@@ -16,7 +16,7 @@ Template._meteorFileUploader.events({
       file = fileInput.files[i];
       mFile = new MeteorFile(file, { collection: uploader.files });
 
-      tmpl.data.files.insert(mFile.toJSONValue());
+      uploader.files.insert(mFile.toJSONValue());
 
       mFile.upload(
         file,

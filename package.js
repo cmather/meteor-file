@@ -4,9 +4,9 @@ Package.describe({
 
 Package.on_use(function (api) {
   api.use(["underscore", "ejson"], ["client", "server"]);
-  api.use(["handlebars", "spark"], "client");
+  api.use(["templating", "spacebars", "ui"], "client");
   api.add_files(["meteor-file.js"], ["client", "server"]);
-  api.add_files("meteor-file-uploader.js", "client");
+  api.add_files(["meteor-file-uploader.html", "meteor-file-uploader.js"], "client");
 
   if (typeof api.export !== 'undefined') {
     api.export("MeteorFile", ["client", "server"]);

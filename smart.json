@@ -5,5 +5,7 @@
   "author": "Chris Mather <mather@eventedmind.com>",
   "version": "0.0.7",
   "git": "https://github.com/EventedMind/meteor-file.git",
-  "packages": {}
+  "packages": {
+    "blob": {}
+  }
 }

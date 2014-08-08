@@ -14,6 +14,6 @@ Package.on_use(function (api) {
 });
 
 Package.on_test(function (api) {
-  api.use(["meteor-file", "tinytest", "test-helpers"]);
+  api.use(["meteor-file", "tinytest", "test-helpers", "blob"]);
   api.add_files("meteor-file-test.js", ["client", "server"]);
 });

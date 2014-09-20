@@ -152,15 +152,27 @@ if (Meteor.isClient) {
     upload: function (file, method, options, callback) {
       var self = this;
 
-      if (!Blob.prototype.isPrototypeOf(file))
-        throw new Meteor.Error("First parameter must inherit from Blob");
-
-      if (!_.isString(method))
-        throw new Meteor.Error("Second parameter must be a Meteor.method name");
-
       if (arguments.length < 4 && _.isFunction(options)) {
         callback = options;
         options = {};
+      }
+
+      var error = null;
+      if (!Blob.prototype.isPrototypeOf(file)) {
+        error = new Meteor.Error(400, "First parameter must inherit from Blob");
+      }
+
+      if (!_.isString(method)) {
+        error = new Meteor.Error(400, "Second parameter must be a Meteor.method name");
+      }
+
+      if (error) {
+        if (callback) {
+          return callback(error);
+        }
+        else {
+          throw error;
+        }
       }
 
       options = options || {};
